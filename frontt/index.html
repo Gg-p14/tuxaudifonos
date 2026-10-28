@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Descubre audífonos diseñados para acompañar cada momento en TuxAudifonos.">
+  <title>TuxAudifonos — Escucha diferente</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/styles.css">
+  
+</head>
+<body>
+  <div class="announcement">Envío gratis en compras mayores a $1,499 <span>·</span> Sonido que te mueve</div>
+  <header class="navbar">
+    <a class="brand" href="#inicio" aria-label="TuxAudifonos inicio"><span class="brand-mark">t</span> tuxaudifonos</a>
+    <nav class="main-nav" id="main-nav">
+      <a href="#audifonos">Audífonos</a>
+      <a href="#experiencia">Experiencia</a>
+      <a href="#nosotros">Nosotros</a>
+    </nav>
+    <div class="nav-actions">
+      <button class="icon-button" id="search-toggle" aria-label="Buscar productos"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.8"></circle><path d="m16 16 5 5"></path></svg></button>
+      <a class="account-link" href="/perfil">Mi cuenta</a><a class="bag-link" href="/carrito" aria-label="Ir al carrito"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 8h14l1 13H4L5 8Z"></path><path d="M9 9V6a3 3 0 0 1 6 0v3"></path></svg><span id="cart-count">0</span></a>
+      <button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú">☰</button>
+    </div>
+  </header>
+
+  <main id="inicio">
+    <section class="hero dark-section">
+      <div class="hero-copy">
+        <p class="eyebrow">TUX SOUND COLLECTION</p>
+        <h1>El mundo afuera.<br><span>Tu sonido adentro.</span></h1>
+        <p class="hero-description">Audífonos que se sienten tan bien como suenan. Encuentra tu forma de escuchar.</p>
+        <div class="hero-buttons"><a class="button button-light" href="#audifonos">Explorar colección <span>↗</span></a><a class="text-link light-link" href="#experiencia">Descubre Tux Sound</a></div>
+      </div>
+      <div class="hero-art" aria-label="Audífonos premium negros">
+        <div class="art-orbit orbit-one"></div><div class="art-orbit orbit-two"></div>
+        <img src="https://images.unsplash.com/photo-1505751903878-c2a6e1a9a8ba?auto=format&fit=crop&w=1200&q=85" alt="Audífonos de diadema negros sobre fondo oscuro">
+        <div class="floating-label"><span class="pulse-dot"></span> AUDIO INMERSIVO <span>01 / 03</span></div>
+      </div>
+      <div class="hero-bottom"><span>DISEÑO CON INTENCIÓN</span><span>SONIDO SIN DISTRACCIONES</span><span>HECHO PARA TU RITMO ↓</span></div>
+    </section>
+
+    <section class="intro-section" id="experiencia">
+      <p class="eyebrow">MÁS QUE ESCUCHAR</p>
+      <h2>Tu música.<br><span>Tu espacio.</span></h2>
+      <p>Una buena experiencia de audio cambia cómo se siente cada momento. Encuentra el compañero perfecto para tu día.</p>
+      <a class="text-link" href="#audifonos">Conoce la colección <span>→</span></a>
+    </section>
+
+    <section class="products-section" id="audifonos">
+      <div class="section-heading"><div><p class="eyebrow">ENCUENTRA TU SONIDO</p><h2>La colección.</h2></div><div class="product-tools"><label class="search-box" id="search-box"><span>⌕</span><input type="search" id="product-search" placeholder="Buscar audífonos..." aria-label="Buscar audífonos"></label><select id="sort-products" aria-label="Ordenar productos"><option value="featured">Destacados</option><option value="low">Precio: menor a mayor</option><option value="high">Precio: mayor a menor</option></select></div></div>
+      <div class="category-row" aria-label="Filtrar por tipo"><button class="filter-chip active" data-filter="">Todos</button></div>
+      <div class="product-grid" id="product-grid" aria-live="polite">
+      </div></div>
+      <p class="catalog-note" id="catalog-note">Precios ilustrativos para el proyecto escolar. Productos de demostración.</p>
+    </section>
+
+    <section class="feature-banner" id="nosotros"><div class="feature-image"><img src="https://images.unsplash.com/photo-1484704849700-f032a568e944?auto=format&fit=crop&w=1400&q=85" alt="Audífonos de diseño moderno"></div><div class="feature-copy"><p class="eyebrow">DISEÑADO PARA ACOMPAÑARTE</p><h2>Menos ruido.<br>Más de lo que importa.</h2><p>Para concentrarte, moverte o simplemente desconectarte. Encuentra el sonido que va contigo.</p><a class="button button-dark" href="#audifonos">Encuentra tus audífonos <span>↗</span></a></div></section>
+
+    <section class="benefits"><article><span class="benefit-icon">↗</span><h3>Compra con confianza</h3><p>Información clara para elegir el modelo ideal para ti.</p></article><article><span class="benefit-icon">◉</span><h3>Diseño que se siente</h3><p>Productos seleccionados por su comodidad y estilo.</p></article><article><span class="benefit-icon">♫</span><h3>Tu ritmo, tus reglas</h3><p>Opciones para escuchar en casa, en la calle o entrenando.</p></article></section>
+  </main>
+
+  <footer class="footer"><div class="footer-top"><a class="brand footer-brand" href="#inicio"><span class="brand-mark">t</span> tuxaudifonos</a><p>Encuentra tu sonido.</p><a href="#inicio">Volver arriba ↑</a></div>
+</footer>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+<script>
+const $ = (s) => document.querySelector(s);
+const money = (n) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(Number(n || 0));
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const CART_KEY = "tux_carrito_v2";
+function contarCarrito() {
+  try { const it = JSON.parse(localStorage.getItem(CART_KEY) || "[]"); $("#cart-count").textContent = it.reduce((n, x) => n + x.cantidad, 0); } catch {}
+}
+contarCarrito();
+const estado = { categoria: "", q: "", orden: "destacados" };
+async function api(url) {
+  const r = await fetch("/api" + url, { credentials: "same-origin" });
+  const d = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(d.detail || "No se pudo cargar.");
+  return d;
+}
+async function cargarCategorias() {
+  try {
+    const { categorias } = await api("/categorias");
+    const cont = document.querySelector(".category-row");
+    cont.innerHTML = `<button class="filter-chip active" data-filter="">Todos</button>` +
+      categorias.map((c) => `<button class="filter-chip" data-filter="${esc(c.slug)}">${esc(c.nombre)}</button>`).join("");
+    cont.querySelectorAll("button").forEach((b) => b.addEventListener("click", () => {
+      cont.querySelectorAll("button").forEach((x) => x.classList.remove("active"));
+      b.classList.add("active");
+      estado.categoria = b.dataset.filter;
+      cargarProductos();
+    }));
+  } catch {}
+}
+async function cargarProductos() {
+  const grid = $("#product-grid");
+  const p = new URLSearchParams({ orden: estado.orden });
+  if (estado.categoria) p.set("categoria", estado.categoria);
+  if (estado.q) p.set("q", estado.q);
+  try {
+    const items = await api("/audifonos/?" + p);
+    if (!items.length) { grid.innerHTML = '<p class="muted">No encontramos productos con esa búsqueda.</p>'; return; }
+    grid.innerHTML = items.map((x) => `
+      <article class="product-card">
+        <a class="product-image" href="/producto?id=${x.id_audifono}">
+          ${x.imagen ? `<img src="${esc(x.imagen)}" alt="${esc(x.nombre)}" loading="lazy">` : `<span style="font-size:48px">${esc(x.nombre[0])}</span>`}
+        </a>
+        <div class="product-info">
+          <div>
+            <p class="product-type">${esc(x.marca)} · ${esc(x.categoria)}</p>
+            <h3>${esc(x.nombre)}</h3>
+          </div>
+          <strong>${money(x.precio)}</strong>
+        </div>
+        <p class="product-desc">${esc(x.descripcion || "")}</p>
+        ${x.existencias > 0
+          ? `<a class="product-button" href="/producto?id=${x.id_audifono}">Descubrir producto <span>＋</span></a>`
+          : '<span class="muted">Agotado</span>'}
+      </article>`).join("");
+  } catch (e) {
+    grid.innerHTML = `<p class="muted">${esc(e.message)}</p>`;
+  }
+}
+let t;
+$("#product-search").addEventListener("input", (e) => {
+  clearTimeout(t);
+  t = setTimeout(() => { estado.q = e.target.value.trim(); cargarProductos(); }, 300);
+});
+$("#sort-products").addEventListener("change", (e) => {
+  estado.orden = { featured: "destacados", low: "precio_asc", high: "precio_desc" }[e.target.value] || "destacados";
+  cargarProductos();
+});
+$("#search-toggle").addEventListener("click", () => { $("#product-search").focus(); });
+$("#menu-toggle").addEventListener("click", () => {
+  const nav = $("#main-nav");
+  nav.style.display = nav.style.display === "flex" ? "none" : "flex";
+});
+cargarCategorias();
+cargarProductos();
+</script>
+</body>
+
+</html>

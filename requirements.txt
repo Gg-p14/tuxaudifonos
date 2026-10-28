@@ -1,0 +1,6 @@
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pyodbc>=5.1
+pydantic[email]>=2.8
+itsdangerous>=2.2
+python-dotenv>=1.0

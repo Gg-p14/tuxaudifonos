@@ -1,0 +1,43 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/static/styles.css"><link rel="stylesheet" href="/static/shop.css"><title>Pedido | TuxAudifonos</title></head><body>
+<header class="navbar"><a class="brand" href="/"><span class="brand-mark">t</span> tuxaudifonos</a><nav class="main-nav"><a href="/">Audífonos</a><a href="/perfil">Mi cuenta</a><a href="/pedidos">Mis pedidos</a><a href="/carrito">Carrito</a></nav></header>
+<main class="shop-main"><div id="msg" class="notice hidden"></div><div id="cont"><p class="muted">Cargando…</p></div></main>
+<script>
+const $ = (s) => document.querySelector(s);
+const money = (n) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(Number(n || 0));
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fecha = (f) => new Date(f).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" });
+const folio = (id) => "TUX-" + String(id).padStart(6, "0");
+async function api(url, opts = {}) { const r = await fetch("/api" + url, { credentials: "same-origin", ...opts, headers: { "Content-Type": "application/json", ...(opts.headers || {}) } }); const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(Array.isArray(d.detail) ? d.detail.map((x) => x.msg).join(". ") : (d.detail || "Ocurrió un error.")); return d; }
+const ETAPAS = ["Comprada", "En preparación", "Enviado", "Entregado"];
+(async () => {
+  const id = new URLSearchParams(location.search).get("id");
+  let p;
+  try { p = await api("/compras/" + encodeURIComponent(id)); }
+  catch (e) { $("#cont").innerHTML = `<div class="empty-box"><h2>${esc(e.message)}</h2><a class="primary-button" href="/pedidos" style="max-width:250px;margin:18px auto 0">Mis pedidos</a></div>`; return; }
+  document.title = "Pedido " + folio(p.id_venta) + " | TuxAudifonos";
+  const cancelable = p.estado === "Comprada";
+  const paso = ETAPAS.indexOf(p.estado);
+  $("#cont").innerHTML = `
+    <div class="shop-head"><p class="eyebrow">PEDIDO ${folio(p.id_venta)}</p><h1>${money(p.total)}</h1><p class="muted">${fecha(p.fecha_venta)} · <span class="status">${esc(p.estado)}</span></p></div>
+    <div class="shop-grid">
+      <section class="shop-panel"><h2>Productos</h2>${p.productos.map((x) => `<div class="total-line"><span>${esc(x.nombre)} × ${x.cantidad}</span><strong>${money(x.precio * x.cantidad)}</strong></div>`).join("")}
+        <h2 style="margin-top:24px">Seguimiento</h2>
+        ${p.estado === "Cancelada" ? '<p class="muted">Este pedido fue cancelado.</p>' : ETAPAS.map((e, i) => `<p class="muted" style="margin:6px 0;color:${i <= paso ? "#171719" : "#aaa"}">${i <= paso ? "✓" : "○"} ${e}</p>`).join("")}
+        ${p.codigo_seguimiento ? `<p class="muted">Código de seguimiento: <strong>${esc(p.codigo_seguimiento)}</strong></p>` : ""}
+        <h2 style="margin-top:24px">Historial</h2>
+        ${p.historial.map((h) => `<p class="muted" style="margin:4px 0">${fecha(h.fecha)} · <strong>${esc(h.estado)}</strong>${h.nota ? " — " + esc(h.nota) : ""}</p>`).join("")}
+      </section>
+      <aside class="shop-panel"><h2>Envío</h2>
+        <p>${esc(p.nombre_recibe)}<br>${esc(p.direccion_envio)}<br>${esc(p.ciudad_envio)}, ${esc(p.estado_envio)} · CP ${esc(p.cp_envio)}<br>Tel. ${esc(p.telefono_envio)}</p>
+        ${p.referencia_envio ? `<p class="muted">${esc(p.referencia_envio)}</p>` : ""}
+        ${cancelable ? '<button id="cancelar" class="secondary-button" style="width:100%;margin-top:18px;color:#c33">Cancelar pedido</button>' : ""}
+        <a class="secondary-button" href="/pedidos" style="width:100%;margin-top:10px">Todos mis pedidos</a>
+      </aside></div>`;
+  const c = $("#cancelar");
+  if (c) c.onclick = async () => {
+    if (!confirm("¿Cancelar este pedido?")) return;
+    try { await api("/compras/" + id + "/cancelar", { method: "POST" }); location.reload(); }
+    catch (e) { $("#msg").textContent = e.message; $("#msg").className = "notice"; }
+  };
+})();
+</script></body></html>

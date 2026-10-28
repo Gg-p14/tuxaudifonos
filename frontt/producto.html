@@ -1,0 +1,50 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Producto | TuxAudifonos</title><link rel="stylesheet" href="/static/styles.css"><link rel="stylesheet" href="/static/shop.css"></head><body>
+<header class="navbar"><a class="brand" href="/"><span class="brand-mark">t</span> tuxaudifonos</a><nav class="main-nav"><a href="/">Audífonos</a></nav><div class="nav-actions"><a href="/carrito">Carrito (<span id="cart-count">0</span>)</a></div></header>
+<main class="shop-main"><p><a href="/" class="muted">← Volver al catálogo</a></p>
+<div id="contenido"><p class="muted">Cargando…</p></div>
+</main>
+<script>
+const $ = (s) => document.querySelector(s);
+const money = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(n || 0));
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const CART_KEY = 'tux_carrito_v2';
+const leerCarrito = () => { try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; } };
+function contarCarrito() { $('#cart-count').textContent = leerCarrito().reduce((n, x) => n + x.cantidad, 0); }
+function agregar(p) {
+  const items = leerCarrito(); const tope = Math.min(20, p.existencias);
+  const it = items.find((x) => x.id_audifono === p.id_audifono);
+  if (it) it.cantidad = Math.min(tope, it.cantidad + 1);
+  else items.push({ id_audifono: p.id_audifono, nombre: p.nombre, marca: p.marca, precio: p.precio, imagen: p.imagen, existencias: p.existencias, cantidad: 1 });
+  localStorage.setItem(CART_KEY, JSON.stringify(items)); contarCarrito();
+}
+contarCarrito();
+const id = new URLSearchParams(location.search).get('id');
+fetch('/api/audifonos/' + encodeURIComponent(id || 0), { credentials: 'same-origin' }).then(async (r) => {
+  const p = await r.json().catch(() => ({}));
+  if (!r.ok) { $('#contenido').innerHTML = `<p class="muted">${esc(p.detail || 'Producto no encontrado.')}</p>`; return; }
+  document.title = p.nombre + ' | TuxAudifonos';
+  const specs = [
+    ['Marca', p.marca], ['Categoría', p.categoria],
+    ['Batería', p.bateria_horas ? p.bateria_horas + ' horas' : null],
+    ['Cancelación de ruido', p.cancelacion_ruido ? 'Sí' : null],
+    ['Existencias', p.existencias > 0 ? p.existencias + ' disponibles' : 'Agotado'],
+  ].filter((s) => s[1]);
+  $('#contenido').innerHTML = `
+    <div class="shop-grid">
+      <section class="shop-panel" style="padding:0;overflow:hidden">${p.imagen ? `<img src="${esc(p.imagen)}" alt="${esc(p.nombre)}" style="width:100%;display:block;max-height:520px;object-fit:cover">` : `<div style="height:360px;display:grid;place-items:center;font-size:72px">${esc(p.nombre[0])}</div>`}</section>
+      <aside class="shop-panel">
+        <p class="eyebrow">${esc(p.marca)} · ${esc(p.categoria)}</p>
+        <h1 style="font-size:34px;margin:6px 0 10px">${esc(p.nombre)}</h1>
+        <p><strong style="font-size:26px">${money(p.precio)}</strong>${p.precio_anterior ? ` <span class="muted"><s>${money(p.precio_anterior)}</s></span>` : ''}</p>
+        <p class="muted">${esc(p.descripcion || '')}</p>
+        <h3>Especificaciones</h3>
+        ${specs.map((s) => `<div class="total-line"><span>${esc(s[0])}</span><strong>${esc(s[1])}</strong></div>`).join('')}
+        ${p.existencias > 0 ? `<button id="add" class="primary-button" style="margin-top:18px">Agregar al carrito</button><button id="buy" class="secondary-button" style="width:100%;margin-top:10px">Comprar ahora</button>` : '<p class="muted" style="margin-top:18px">Por ahora no hay existencias.</p>'}
+      </aside>
+    </div>`;
+  if (p.existencias > 0) {
+    $('#add').onclick = () => { agregar(p); alert('Agregado al carrito'); };
+    $('#buy').onclick = () => { agregar(p); location.href = '/carrito'; };
+  }
+}).catch(() => { $('#contenido').innerHTML = '<p class="muted">No se pudo cargar el producto.</p>'; });
+</script></body></html>

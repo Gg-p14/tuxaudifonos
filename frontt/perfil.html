@@ -1,0 +1,52 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/static/styles.css"><link rel="stylesheet" href="/static/shop.css"><title>Mi cuenta | TuxAudifonos</title></head><body>
+<header class="navbar"><a class="brand" href="/"><span class="brand-mark">t</span> tuxaudifonos</a><nav class="main-nav"><a href="/">Audífonos</a><a href="/perfil">Mi cuenta</a><a href="/pedidos">Mis pedidos</a><a href="/carrito">Carrito</a></nav></header>
+<main class="shop-main"><div class="shop-head"><p class="eyebrow">TU CUENTA</p><h1>Mi cuenta.</h1></div><div id="msg" class="notice hidden"></div>
+<div class="shop-grid">
+  <section class="shop-panel"><h2>Datos personales</h2><form id="perfil-form" class="form-grid">
+    <div class="field"><label for="nombre">Nombre</label><input id="nombre" name="nombre" required minlength="2"></div>
+    <div class="field"><label for="apellidos">Apellidos</label><input id="apellidos" name="apellidos" required minlength="2"></div>
+    <div class="field full"><label for="telefono">Teléfono</label><input id="telefono" name="telefono" required minlength="8" maxlength="20"></div>
+    <div class="field full"><button class="primary-button" type="submit">Guardar cambios</button></div></form>
+    <button id="salir" class="secondary-button" style="width:100%;margin-top:16px">Cerrar sesión</button></section>
+  <section class="shop-panel"><h2>Direcciones</h2><div id="dirs"></div>
+    <h3 style="margin-top:22px">Agregar dirección</h3><form id="dir-form" class="form-grid">
+    <div class="field full"><label for="alias">Alias (Casa, Trabajo)</label><input id="alias" name="alias" required minlength="2" value="Casa"></div>
+    <div class="field full"><label for="nombre_recibe">Quién recibe</label><input id="nombre_recibe" name="nombre_recibe" required minlength="2"></div>
+    <div class="field full"><label for="d_tel">Teléfono</label><input id="d_tel" name="telefono" required minlength="8" maxlength="20"></div>
+    <div class="field full"><label for="direccion">Calle, número y colonia</label><input id="direccion" name="direccion" required minlength="5"></div>
+    <div class="field"><label for="ciudad">Ciudad</label><input id="ciudad" name="ciudad" required></div>
+    <div class="field"><label for="estado">Estado</label><input id="estado" name="estado" required value="Chiapas"></div>
+    <div class="field"><label for="cp">Código postal</label><input id="cp" name="codigo_postal" required pattern="[0-9]{5}" maxlength="5"></div>
+    <div class="field full"><label for="referencia">Referencia (opcional)</label><input id="referencia" name="referencia"></div>
+    <div class="field full"><button class="primary-button" type="submit">Guardar dirección</button></div></form></section>
+</div></main>
+<script>
+const $ = (s) => document.querySelector(s);
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+async function api(url, opts = {}) { const r = await fetch("/api" + url, { credentials: "same-origin", ...opts, headers: { "Content-Type": "application/json", ...(opts.headers || {}) } }); const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(Array.isArray(d.detail) ? d.detail.map((x) => x.msg).join(". ") : (d.detail || "Ocurrió un error.")); return d; }
+const aviso = (t, err) => { const m = $("#msg"); m.textContent = t; m.className = "notice" + (err ? "" : " ok"); };
+(async () => {
+  let u; try { u = (await api("/auth/me")).usuario; } catch {}
+  if (!u) { location.href = "/iniciar-sesion?next=/perfil"; return; }
+  $("#nombre").value = u.nombre; $("#apellidos").value = u.apellidos; $("#telefono").value = u.telefono || "";
+  pintarDirs();
+})();
+$("#perfil-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try { await api("/auth/perfil", { method: "PUT", body: JSON.stringify(Object.fromEntries(new FormData(e.target))) }); aviso("Datos actualizados."); }
+  catch (err) { aviso(err.message, true); }
+});
+async function pintarDirs() {
+  try {
+    const dirs = await api("/cuenta/direcciones");
+    $("#dirs").innerHTML = dirs.length ? dirs.map((d) => `<div class="total-line" style="align-items:flex-start"><span>${esc(d.alias)}<br><span class="muted">${esc(d.direccion)}, ${esc(d.ciudad)} CP ${esc(d.codigo_postal)}</span></span><button class="remove" data-b="${d.id_direccion}">Eliminar</button></div>`).join("") : '<p class="muted">No tienes direcciones guardadas.</p>';
+    $("#dirs").querySelectorAll("[data-b]").forEach((b) => b.onclick = async () => { try { await api("/cuenta/direcciones/" + b.dataset.b, { method: "DELETE" }); pintarDirs(); } catch (err) { aviso(err.message, true); } });
+  } catch (err) { $("#dirs").innerHTML = `<p class="muted">${esc(err.message)}</p>`; }
+}
+$("#dir-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  try { await api("/cuenta/direcciones", { method: "POST", body: JSON.stringify(Object.fromEntries(new FormData(e.target))) }); e.target.reset(); $("#alias").value = "Casa"; $("#estado").value = "Chiapas"; pintarDirs(); aviso("Dirección guardada."); }
+  catch (err) { aviso(err.message, true); }
+});
+$("#salir").onclick = async () => { await api("/auth/logout", { method: "POST" }); location.href = "/"; };
+</script></body></html>

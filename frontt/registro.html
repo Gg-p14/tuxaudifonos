@@ -1,0 +1,14 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Crear cuenta | TuxAudifonos</title><link rel="stylesheet" href="/static/shop.css"></head><body><header class="navbar"><a class="brand" href="/"><span class="brand-mark">t</span> tuxaudifonos</a><nav class="main-nav"><a href="/">Audífonos</a><a href="/carrito">Carrito</a></nav></header><main class="shop-main" style="max-width:650px"><div class="shop-head"><p class="eyebrow">TU EXPERIENCIA, A TU MANERA</p><h1>Crea tu cuenta.</h1><p class="muted">Guarda tus datos y revisa el historial de tus pedidos.</p></div><div id="message" class="notice hidden"></div><form id="register-form" class="shop-panel"><div class="form-grid"><div class="field"><label for="nombre">Nombre</label><input id="nombre" name="nombre" required minlength="2" autocomplete="given-name"></div><div class="field"><label for="apellidos">Apellidos</label><input id="apellidos" name="apellidos" required minlength="2" autocomplete="family-name"></div><div class="field full"><label for="correo">Correo electrónico</label><input id="correo" name="correo" type="email" required autocomplete="email"></div><div class="field full"><label for="telefono">Teléfono</label><input id="telefono" name="telefono" type="tel" required minlength="8" maxlength="20" autocomplete="tel"></div><div class="field full"><label for="password">Contraseña (mínimo 8 caracteres)</label><input id="password" name="password" type="password" required minlength="8" autocomplete="new-password"></div></div><button class="primary-button" type="submit">Crear cuenta</button><p class="muted">¿Ya tienes cuenta? <a href="/iniciar-sesion" style="color:#3478f6">Inicia sesión</a></p></form></main>
+<script>
+const msg = document.getElementById('message');
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const b = e.target.querySelector('button'); b.disabled = true;
+  try {
+    const r = await fetch('/api/auth/registro', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(Object.fromEntries(new FormData(e.target))) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(Array.isArray(d.detail) ? d.detail.map(x => x.msg).join('. ') : (d.detail || 'No se pudo crear la cuenta.'));
+    location.href = '/';
+  } catch (err) { msg.textContent = err.message; msg.className = 'notice'; b.disabled = false; }
+});
+</script></body></html>

@@ -1,0 +1,48 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Finalizar compra | TuxAudifonos</title><link rel="stylesheet" href="/static/styles.css"><link rel="stylesheet" href="/static/shop.css"></head><body>
+<header class="navbar"><a class="brand" href="/"><span class="brand-mark">t</span> tuxaudifonos</a><nav class="main-nav"><a href="/">Audífonos</a><a href="/carrito">Volver al carrito</a></nav></header>
+<main class="shop-main"><div class="shop-head"><p class="eyebrow">ÚLTIMO PASO</p><h1>Datos de envío.</h1><p class="muted">Confirma quién recibe el pedido y dónde debemos entregarlo.</p></div><div id="message" class="notice hidden"></div><div id="checkout-content"></div></main>
+<script>
+const money = (n) => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(Number(n || 0));
+const esc = (v) => String(v ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const CART_KEY = 'tux_carrito_v2';
+const msg = document.getElementById('message');
+const items = (() => { try { return JSON.parse(localStorage.getItem(CART_KEY) || '[]'); } catch { return []; } })();
+const root = document.getElementById('checkout-content');
+if (!items.length) root.innerHTML = '<div class="empty-box"><h2>No hay productos para comprar.</h2><a class="primary-button" href="/carrito">Volver al carrito</a></div>';
+else (async () => {
+  let u;
+  try { const r = await fetch('/api/auth/me', { credentials: 'same-origin' }); u = (await r.json()).usuario; } catch {}
+  if (!u) { location.href = '/iniciar-sesion?next=/checkout'; return; }
+  const total = items.reduce((n, x) => n + Number(x.precio) * x.cantidad, 0);
+  const envio = total >= 1500 ? 0 : 99;
+  root.innerHTML = `<form id="checkout-form" class="shop-grid"><section class="shop-panel"><h2>Dirección de entrega</h2><div class="form-grid">
+    <div class="field full"><label for="nombre_recibe">Nombre de quien recibe</label><input id="nombre_recibe" name="nombre_recibe" required minlength="2" value="${esc(u.nombre + ' ' + u.apellidos)}"></div>
+    <div class="field full"><label for="telefono">Teléfono de contacto</label><input id="telefono" name="telefono" type="tel" required minlength="8" maxlength="20" value="${esc(u.telefono || '')}"></div>
+    <div class="field full"><label for="direccion">Calle, número y colonia</label><input id="direccion" name="direccion" required minlength="5" placeholder="Calle, número exterior, colonia"></div>
+    <div class="field"><label for="ciudad">Ciudad o municipio</label><input id="ciudad" name="ciudad" required></div>
+    <div class="field"><label for="estado">Estado</label><input id="estado" name="estado" required value="Chiapas"></div>
+    <div class="field"><label for="codigo_postal">Código postal</label><input id="codigo_postal" name="codigo_postal" required pattern="[0-9]{5}" maxlength="5" inputmode="numeric"></div>
+    <div class="field full"><label for="referencia">Referencias de entrega (opcional)</label><textarea id="referencia" name="referencia" rows="2" placeholder="Color de fachada, entre calles, etc."></textarea></div>
+    <div class="field full"><label for="metodo_pago">Método de pago</label><select id="metodo_pago" name="metodo_pago"><option>Efectivo</option><option>Transferencia</option><option>Tarjeta</option></select><p class="muted">No se procesan pagos reales. Esta opción solo se registra para el proyecto.</p></div>
+  </div></section><aside class="shop-panel"><h2>Resumen</h2>
+    ${items.map((x) => `<div class="total-line"><span>${esc(x.nombre)} × ${x.cantidad}</span><strong>${money(x.precio * x.cantidad)}</strong></div>`).join('')}
+    <div class="total-line"><span>Envío</span><strong>${envio ? money(envio) : 'Gratis'}</strong></div>
+    <div class="total-line total"><span>Total</span><strong>${money(total + envio)}</strong></div>
+    <button class="primary-button" type="submit" id="place-order">Confirmar compra</button>
+    <a class="secondary-button" href="/carrito" style="width:100%;margin-top:10px">Editar carrito</a></aside></form>`;
+  document.getElementById('checkout-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const b = document.getElementById('place-order'); b.disabled = true; b.textContent = 'Registrando compra…';
+    const f = Object.fromEntries(new FormData(e.target));
+    const payload = { items: items.map((x) => ({ id_audifono: x.id_audifono, cantidad: x.cantidad })), metodo_pago: f.metodo_pago, guardar_direccion: false,
+      nueva_direccion: { alias: 'Envío', nombre_recibe: f.nombre_recibe, telefono: f.telefono, direccion: f.direccion, ciudad: f.ciudad, estado: f.estado, codigo_postal: f.codigo_postal, referencia: f.referencia || '' } };
+    try {
+      const r = await fetch('/api/compras', { method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const d = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(Array.isArray(d.detail) ? d.detail.map((x) => x.msg).join('. ') : (d.detail || 'No se pudo registrar la compra.'));
+      localStorage.removeItem(CART_KEY);
+      location.href = '/pedidos';
+    } catch (err) { msg.textContent = err.message; msg.className = 'notice'; b.disabled = false; b.textContent = 'Confirmar compra'; }
+  });
+})();
+</script></body></html>

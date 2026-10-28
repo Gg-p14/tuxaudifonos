@@ -1,0 +1,20 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><link rel="stylesheet" href="/static/styles.css"><link rel="stylesheet" href="/static/shop.css"><title>Mis pedidos | TuxAudifonos</title></head><body>
+<header class="navbar"><a class="brand" href="/"><span class="brand-mark">t</span> tuxaudifonos</a><nav class="main-nav"><a href="/">Audífonos</a><a href="/perfil">Mi cuenta</a><a href="/pedidos">Mis pedidos</a><a href="/carrito">Carrito</a></nav></header>
+<main class="shop-main"><div class="shop-head"><p class="eyebrow">TODO EN UN MISMO LUGAR</p><h1>Mis pedidos.</h1><p class="muted">Aquí puedes consultar tus compras y los datos de envío registrados.</p></div><div id="msg" class="notice hidden"></div><div id="lista"></div></main>
+<script>
+const $ = (s) => document.querySelector(s);
+const money = (n) => new Intl.NumberFormat("es-MX", { style: "currency", currency: "MXN" }).format(Number(n || 0));
+const esc = (v) => String(v ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const fecha = (f) => new Date(f).toLocaleString("es-MX", { dateStyle: "medium", timeStyle: "short" });
+const folio = (id) => "TUX-" + String(id).padStart(6, "0");
+async function api(url, opts = {}) { const r = await fetch("/api" + url, { credentials: "same-origin", ...opts, headers: { "Content-Type": "application/json", ...(opts.headers || {}) } }); const d = await r.json().catch(() => ({})); if (!r.ok) throw new Error(Array.isArray(d.detail) ? d.detail.map((x) => x.msg).join(". ") : (d.detail || "Ocurrió un error.")); return d; }
+(async () => {
+  let u; try { u = (await api("/auth/me")).usuario; } catch {}
+  if (!u) { location.href = "/iniciar-sesion?next=/pedidos"; return; }
+  try {
+    const pedidos = await api("/compras");
+    if (!pedidos.length) { $("#lista").innerHTML = '<div class="empty-box"><h2>Aún no tienes pedidos.</h2><p class="muted">Cuando completes una compra aparecerá aquí.</p><a class="primary-button" href="/" style="max-width:250px;margin:18px auto 0">Explorar colección</a></div>'; return; }
+    $("#lista").innerHTML = pedidos.map((o) => `<a href="/pedido?id=${o.id_venta}" class="order-card" style="display:block;color:inherit;text-decoration:none"><div class="order-top"><div><p class="eyebrow">PEDIDO ${folio(o.id_venta)}</p><h2 style="margin:0 0 8px">${money(o.total)}</h2><p class="muted">${fecha(o.fecha_venta)}</p></div><span class="status">${esc(o.estado)}</span></div><p class="muted">${o.productos.map((x) => esc(x.nombre) + " × " + x.cantidad).join(", ")}</p></a>`).join("");
+  } catch (e) { $("#msg").textContent = e.message; $("#msg").className = "notice"; }
+})();
+</script></body></html>
